@@ -1,6 +1,20 @@
     static double soma = 0;
+    private static final Object lockSoma = new Object();
+
+    private static void tarefaPesadaVariavel() {
+        String nomeAtual = Thread.currentThread().getName();
+        System.out.println("Rodando na thread: " + nomeAtual);
+
+        synchronized (lockSoma) {
+            for (int i = 0; i < 5000; i++) {
+                soma += i;
+            }
+        }
+        System.out.println("Soma total " + soma );
+    }
+
     // Simula um trabalho pesado de CPU
-    private static void tarefaPesada() {
+    private synchronized static void tarefaPesadaBloco() {
         String nomeAtual = Thread.currentThread().getName();
         System.out.println("Rodando na thread: " + nomeAtual);
         for (int i = 0; i < 5000; i++) {
@@ -20,7 +34,7 @@
         long inicioSeq = System.currentTimeMillis();
 
         for (int i = 0; i < totalTarefas; i++) {
-            tarefaPesada();
+            tarefaPesadaVariavel();
         }
 
         long tempoSeq = System.currentTimeMillis() - inicioSeq;
@@ -35,7 +49,7 @@
 
         // Criando e iniciando as threads
         for (int i = 0; i < totalTarefas; i++) {
-            threads[i] = new Thread(() -> tarefaPesada());
+            threads[i] = new Thread(() -> tarefaPesadaVariavel());
             threads[i].start(); // Dispara a execução em paralelo
         }
 
