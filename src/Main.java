@@ -1,13 +1,11 @@
-
+    static double soma = 0;
     // Simula um trabalho pesado de CPU
     private static void tarefaPesada() {
-        double soma =0;
         String nomeAtual = Thread.currentThread().getName();
         System.out.println("Rodando na thread: " + nomeAtual);
         for (int i = 0; i < 5000; i++) {
-            soma += Math.sqrt(i);
+            soma += i;
         }
-
         System.out.println("Soma total " + soma );
     }
 
@@ -31,6 +29,7 @@
         // ==========================================
         // 2. EXECUÇÃO PARALELA (Usando Thread)
         // ==========================================
+        soma = 0;
         long inicioPar = System.currentTimeMillis();
         Thread[] threads = new Thread[totalTarefas];
 
