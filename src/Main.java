@@ -1,18 +1,6 @@
     static double soma = 0;
     private static final Object lockSoma = new Object();
 
-    private static void tarefaPesadaVariavel() {
-        String nomeAtual = Thread.currentThread().getName();
-        System.out.println("Rodando na thread: " + nomeAtual);
-        double soma = 0;
-
-            for (int i = 0; i < 50000; i++) {
-                synchronized (lockSoma) {
-                    soma += i;
-                }
-            }
-        System.out.println("Soma total " + soma );
-    }
 
     private static double tarefaPesadaVariavelEficiente() {
         String nomeAtual = Thread.currentThread().getName();
@@ -20,22 +8,22 @@
         double soma = 0;
 
         for (int i = 0; i < 100000000; i++) {
-            synchronized (lockSoma) {
                 soma += i;
-            }
         }
-        System.out.println("Soma total " + soma );
+
         return soma;
     }
 
-    // Simula um trabalho pesado de CPU
-    private synchronized static void tarefaPesadaBloco() {
-        String nomeAtual = Thread.currentThread().getName();
-        System.out.println("Rodando na thread: " + nomeAtual);
-        for (int i = 0; i < 5000; i++) {
-            soma += i;
+    private static void shutdownExecutor(ExecutorService executor) {
+        executor.shutdown(); // Reject incoming tasks, complete existing ones
+        try {
+            if (!executor.awaitTermination(60, TimeUnit.SECONDS)) {
+                executor.shutdownNow(); // Force kill running tasks if timeout expires
+            }
+        } catch (InterruptedException ex) {
+            executor.shutdownNow();
+            Thread.currentThread().interrupt();
         }
-        System.out.println("Soma total " + soma );
     }
 
     public static void main(String[] args) throws InterruptedException {
@@ -47,31 +35,46 @@
         // 1. EXECUÇÃO SEQUENCIAL
         // ==========================================
         long inicioSeq = System.currentTimeMillis();
-
+        double somaTotal = 0;
         for (int i = 0; i < totalTarefas; i++) {
-            tarefaPesadaVariavel();
+            somaTotal = somaTotal + tarefaPesadaVariavelEficiente();
         }
 
         long tempoSeq = System.currentTimeMillis() - inicioSeq;
+        System.out.println("Soma Total: " + somaTotal);
         System.out.println("Tempo Sequencial: " + tempoSeq + " ms");
 
+        System.out.println("------------------------------------------------------");
         // ==========================================
         // 2. EXECUÇÃO PARALELA (Usando Thread)
         // ==========================================
         soma = 0;
+
         long inicioPar = System.currentTimeMillis();
-        Thread[] threads = new Thread[totalTarefas];
 
-        // Criando e iniciando as threads
-        for (int i = 0; i < totalTarefas; i++) {
-            threads[i] = new Thread(() -> tarefaPesadaVariavel());
-            threads[i].start(); // Dispara a execução em paralelo
+        ExecutorService executor = Executors.newFixedThreadPool(totalTarefas);
+
+        Callable<Double> asyncTask = () -> {
+            return tarefaPesadaVariavelEficiente();
+        };
+
+        Future<Double> futureResult = executor.submit(asyncTask);
+
+        try {
+            // 4. Retrieve the result (blocks execution if task is incomplete)
+            Double somaTotalD = 0.0;
+            for (int i = 0; i < totalTarefas; i++) {
+                somaTotalD = somaTotalD + futureResult.get();
+            }
+
+            System.out.println("Soma Total: " + somaTotalD);
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        } finally {
+            // 5. Always shut down the executor service to free resources
+            shutdownExecutor(executor);
         }
 
-        // Aguardando todas as threads terminarem
-        for (int i = 0; i < totalTarefas; i++) {
-            threads[i].join(); // Pausa a thread principal até que a thread 'i' finalize
-        }
 
         long tempoPar = System.currentTimeMillis() - inicioPar;
         System.out.println("Tempo Paralelo:   " + tempoPar + " ms\n");
