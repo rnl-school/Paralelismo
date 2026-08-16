@@ -46,14 +46,27 @@
 
         long inicioPar = System.currentTimeMillis();
 
-        CompletableFuture<Double> future = CompletableFuture.supplyAsync(() ->  Calculate());
+        List<CompletableFuture<Double>> futures =
+                new ArrayList<>();
 
-        future.thenAccept(soma ->
-                System.out.println("Soma Total: " + soma));
+        for (int i = 0; i < totalTarefas; i++) {
 
-        future.join();
+            CompletableFuture<Double> future =
+                    CompletableFuture.supplyAsync(
+                            () -> tarefaPesadaVariavelEficiente()
+                    );
+
+            futures.add(future);
+        }
+
+        double somaTotalParalela = 0.0;
+
+        for (CompletableFuture<Double> future : futures) {
+            somaTotalParalela += future.join();
+        }
 
         long tempoPar = System.currentTimeMillis() - inicioPar;
+        System.out.println("Soma Total: " + somaTotalParalela);
         System.out.println("Tempo Paralelo:   " + tempoPar + " ms\n");
 
         // Resultado
