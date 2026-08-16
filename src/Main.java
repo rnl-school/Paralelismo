@@ -4,13 +4,28 @@
     private static void tarefaPesadaVariavel() {
         String nomeAtual = Thread.currentThread().getName();
         System.out.println("Rodando na thread: " + nomeAtual);
+        double soma = 0;
 
-        synchronized (lockSoma) {
-            for (int i = 0; i < 5000; i++) {
+            for (int i = 0; i < 50000; i++) {
+                synchronized (lockSoma) {
+                    soma += i;
+                }
+            }
+        System.out.println("Soma total " + soma );
+    }
+
+    private static double tarefaPesadaVariavelEficiente() {
+        String nomeAtual = Thread.currentThread().getName();
+        System.out.println("Rodando na thread: " + nomeAtual);
+        double soma = 0;
+
+        for (int i = 0; i < 100000000; i++) {
+            synchronized (lockSoma) {
                 soma += i;
             }
         }
         System.out.println("Soma total " + soma );
+        return soma;
     }
 
     // Simula um trabalho pesado de CPU
