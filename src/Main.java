@@ -52,22 +52,27 @@
 
         long inicioPar = System.currentTimeMillis();
 
+        List<Future<Double>> futures = new ArrayList<>();
+
         ExecutorService executor = Executors.newFixedThreadPool(totalTarefas);
 
-        Callable<Double> asyncTask = () -> {
-            return tarefaPesadaVariavelEficiente();
-        };
+        for (int i = 0; i < totalTarefas; i++) {
+            Future<Double> future = executor.submit(() -> {
+                return tarefaPesadaVariavelEficiente();
+            });
 
-        Future<Double> futureResult = executor.submit(asyncTask);
+            futures.add(future);
+        }
 
         try {
             // 4. Retrieve the result (blocks execution if task is incomplete)
-            Double somaTotalD = 0.0;
-            for (int i = 0; i < totalTarefas; i++) {
-                somaTotalD = somaTotalD + futureResult.get();
+            Double somaT = 0.0;
+
+            for (Future<Double> future : futures) {
+                somaT += future.get();
             }
 
-            System.out.println("Soma Total: " + somaTotalD);
+            System.out.println("Soma Total: " + somaT);
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
         } finally {
