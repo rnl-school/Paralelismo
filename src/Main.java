@@ -51,10 +51,19 @@
 
         for (int i = 0; i < totalTarefas; i++) {
 
+            final int numeroTarefa = i;
+
             CompletableFuture<Double> future =
-                    CompletableFuture.supplyAsync(
-                            () -> tarefaPesadaVariavelEficiente()
-                    );
+                    CompletableFuture.supplyAsync(() -> {
+
+                        if (numeroTarefa == 2) {
+                            throw new RuntimeException(
+                                    "Erro na tarefa " + numeroTarefa
+                            );
+                        }
+
+                        return tarefaPesadaVariavelEficiente();
+                    });
 
             futures.add(future);
         }
@@ -62,7 +71,14 @@
         double somaTotalParalela = 0.0;
 
         for (CompletableFuture<Double> future : futures) {
-            somaTotalParalela += future.join();
+            try {
+                somaTotalParalela += future.join();
+            } catch (CompletionException e) {
+
+                System.out.println(
+                        "Uma tarefa falhou: " + e.getCause().getMessage()
+                );
+            }
         }
 
         long tempoPar = System.currentTimeMillis() - inicioPar;
