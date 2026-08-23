@@ -1,90 +1,78 @@
 
 
-    private static int totalTarefas = 4;
+    private static int quantidadeTarefas = 100;
 
-    private static double tarefaPesadaVariavelEficiente() {
-        String nomeAtual = Thread.currentThread().getName();
-        System.out.println("Rodando na thread: " + nomeAtual);
-        double soma = 0;
+    private static void VirtualThread() {
+        long inicio = System.currentTimeMillis();
 
-        for (int i = 0; i < 100000000; i++) {
-                soma += i;
-        }
+        try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
 
-        return soma;
-    }
+            for (int i = 0; i < quantidadeTarefas; i++) {
 
-    private static Double Calculate()
-    {
-        double somaTotal = 0.0;
-        for (int i = 0; i < totalTarefas; i++) {
-            somaTotal = somaTotal + tarefaPesadaVariavelEficiente();
-        }
-        return somaTotal;
-    }
+                int tarefa = i;
 
-    public static void main(String[] args) throws InterruptedException {
+                executor.submit(() -> {
 
+                    System.out.println(
+                            "Tarefa " + tarefa +
+                                    " - " + Thread.currentThread()
+                    );
 
-        System.out.println("Executando " + totalTarefas + " tarefas pesadas...\n");
+                    // Simulando uma chamada HTTP
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
 
-        // ==========================================
-        // 1. EXECUÇÃO SEQUENCIAL
-        // ==========================================
-        long inicioSeq = System.currentTimeMillis();
-        double somaTotal = 0;
-        somaTotal = Calculate();
-
-        long tempoSeq = System.currentTimeMillis() - inicioSeq;
-        System.out.println("Soma Total: " + somaTotal);
-        System.out.println("Tempo Sequencial: " + tempoSeq + " ms");
-
-        System.out.println("------------------------------------------------------");
-        // ==========================================
-        // 2. EXECUÇÃO PARALELA (Usando Thread)
-        // ==========================================
-
-        long inicioPar = System.currentTimeMillis();
-
-        List<CompletableFuture<Double>> futures =
-                new ArrayList<>();
-
-        for (int i = 0; i < totalTarefas; i++) {
-
-            final int numeroTarefa = i;
-
-            CompletableFuture<Double> future =
-                    CompletableFuture.supplyAsync(() -> {
-
-                        if (numeroTarefa == 2) {
-                            throw new RuntimeException(
-                                    "Erro na tarefa " + numeroTarefa
-                            );
-                        }
-
-                        return tarefaPesadaVariavelEficiente();
-                    });
-
-            futures.add(future);
-        }
-
-        double somaTotalParalela = 0.0;
-
-        for (CompletableFuture<Double> future : futures) {
-            try {
-                somaTotalParalela += future.join();
-            } catch (CompletionException e) {
-
-                System.out.println(
-                        "Uma tarefa falhou: " + e.getCause().getMessage()
-                );
+                    System.out.println(
+                            "Tarefa " + tarefa + " concluída"
+                    );
+                });
             }
         }
 
-        long tempoPar = System.currentTimeMillis() - inicioPar;
-        System.out.println("Soma Total: " + somaTotalParalela);
-        System.out.println("Tempo Paralelo:   " + tempoPar + " ms\n");
+        long tempo = System.currentTimeMillis() - inicio;
+        System.out.println("Tempo Virtual Thread: " + tempo + " ms");
+    }
 
-        // Resultado
-        System.out.printf("O código paralelo foi %.1fx mais rápido!%n", (double) tempoSeq / tempoPar);
+    private static void ThreadComum() {
+        long inicio = System.currentTimeMillis();
+
+        try (ExecutorService executor = Executors.newFixedThreadPool(10)) {
+
+            for (int i = 0; i < quantidadeTarefas; i++) {
+
+                int tarefa = i;
+
+                executor.submit(() -> {
+
+                    System.out.println(
+                            "Tarefa " + tarefa +
+                                    " - " + Thread.currentThread()
+                    );
+
+                    // Simulando uma chamada HTTP
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+
+                    System.out.println(
+                            "Tarefa " + tarefa + " concluída"
+                    );
+                });
+            }
+        }
+
+        long tempo = System.currentTimeMillis() - inicio;
+        System.out.println("Tempo Thread Comum: " + tempo + " ms");
+    }
+
+
+    public static void main(String[] args){
+
+            ThreadComum();
+            VirtualThread();
     }
