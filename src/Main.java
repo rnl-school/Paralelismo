@@ -1,6 +1,6 @@
 
 private static final List<Pedido> pedidos =
-        new ArrayList<>();
+        new CopyOnWriteArrayList<>();
 
 public static void adicionar(Pedido pedido) {
     pedidos.add(pedido);
