@@ -5,11 +5,7 @@ private static final Map<String, Integer>
 
 public static void registrar(String cliente) {
 
-    pedidosPorCliente.merge(
-            cliente,
-            1,
-            Integer::sum
-    );
+    pedidosPorCliente.put(cliente,  pedidosPorCliente.getOrDefault(cliente, 0) + 1);
 }
 
 public static void main(String[] args)
