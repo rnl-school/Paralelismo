@@ -1,16 +1,16 @@
 
-private static int valor = 0;
+private static AtomicInteger valor = new AtomicInteger(0);;
 
     public static void main(String[] args) throws InterruptedException {
         Thread t1 = new Thread(() -> {
             for (int i = 0; i < 100_000; i++) {
-                valor++;
+                valor.incrementAndGet();
             }
         });
 
         Thread t2 = new Thread(() -> {
             for (int i = 0; i < 100_000; i++) {
-                valor++;
+                valor.incrementAndGet();
             }
         });
 
@@ -20,5 +20,5 @@ private static int valor = 0;
         t1.join();
         t2.join();
 
-        System.out.println(valor);
+        System.out.println(valor.get());
     }
