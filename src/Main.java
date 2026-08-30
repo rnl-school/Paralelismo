@@ -1,12 +1,15 @@
 
-private static final Map<String, Integer>
+private static final ConcurrentHashMap<String, Integer>
         pedidosPorCliente =
-        new HashMap<>();
+        new ConcurrentHashMap<>();
 
 public static void registrar(String cliente) {
 
-    pedidosPorCliente.put(cliente,  pedidosPorCliente.getOrDefault(cliente, 0) + 1);
-}
+    pedidosPorCliente.merge(
+            cliente,
+            1,
+            Integer::sum
+    );}
 
 public static void main(String[] args)
         throws InterruptedException {
